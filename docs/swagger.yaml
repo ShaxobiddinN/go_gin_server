@@ -53,6 +53,22 @@ definitions:
     - body
     - title
     type: object
+  models.CreateAuthorModel:
+    properties:
+      firstname:
+        example: John
+        maxLength: 50
+        minLength: 2
+        type: string
+      lastname:
+        example: Doe
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - firstname
+    - lastname
+    type: object
   models.JSONErrorResponce:
     properties:
       error:
@@ -79,7 +95,6 @@ definitions:
       updated_at:
         type: string
     required:
-    - author
     - body
     - title
     type: object
@@ -255,4 +270,167 @@ paths:
       summary: get article by id
       tags:
       - articles
+  /v1/author:
+    get:
+      consumes:
+      - application/json
+      description: get authors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Author'
+                  type: array
+              type: object
+      summary: List authors
+      tags:
+      - authors
+    post:
+      consumes:
+      - application/json
+      description: create a new author
+      parameters:
+      - description: author body
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAuthorModel'
+      - description: name search by q
+        format: email
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Author'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONErrorResponce'
+      summary: Create author
+      tags:
+      - authors
+    put:
+      consumes:
+      - application/json
+      description: update a new author
+      parameters:
+      - description: author body
+        in: body
+        name: author
+        required: true
+        schema:
+          $ref: '#/definitions/models.Author'
+      - description: name search by q
+        format: email
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Author'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONErrorResponce'
+      summary: Update author
+      tags:
+      - authors
+  /v1/author/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete an author by id
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: name search by q
+        format: email
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Author'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONErrorResponce'
+      summary: delete author by id
+      tags:
+      - authors
+    get:
+      consumes:
+      - application/json
+      description: get an author by id
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: name search by q
+        format: email
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Author'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONErrorResponce'
+      summary: get author by id
+      tags:
+      - authors
 swagger: "2.0"

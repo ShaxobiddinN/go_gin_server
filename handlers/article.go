@@ -82,7 +82,7 @@ func GetArticleById(c *gin.Context) {
 				Message: "OK",
 		 			Data:    article,
 })
-	// for _, v := range storage.IntMemoryArticleData {
+	// for _, v := range storage.InMemoryArticleData {
 	// 	if v.ID == idStr {
 	// 		c.JSON(http.StatusOK, models.JSONResponse{
 	// 			Message: "Article | GetById",
@@ -135,16 +135,16 @@ func UpdateArticle(c *gin.Context) {
 		// gin.H{"error": err.Error()}
 		return
 	}
-	for i, v := range storage.IntMemoryArticleData {
+	for i, v := range storage.InMemoryArticleData {
 		if v.ID == article.ID {
 			article.CreatedAt = v.CreatedAt
 
 			t := time.Now()
 			article.UpdateAt = &t
-			storage.IntMemoryArticleData[i] = article
+			storage.InMemoryArticleData[i] = article
 			c.JSON(http.StatusOK, models.JSONResponse{
 				Message: "Article | Updaate",
-				Data:    storage.IntMemoryArticleData,
+				Data:    storage.InMemoryArticleData,
 			})
 			return
 		}
@@ -154,7 +154,7 @@ func UpdateArticle(c *gin.Context) {
 	})
 	// 	 gin.H{
 	// 	"message": "Article | Update | Not found",
-	// 	"data":    storage.IntMemoryArticleData,
+	// 	"data":    storage.InMemoryArticleData,
 	// }
 }
 
@@ -173,9 +173,9 @@ func UpdateArticle(c *gin.Context) {
 func DeleteArticle(c *gin.Context) {
 	idStr := c.Param("id")
 
-	for i, v := range storage.IntMemoryArticleData {
+	for i, v := range storage.InMemoryArticleData {
 		if v.ID == idStr {
-			storage.IntMemoryArticleData = remove(storage.IntMemoryArticleData, i)
+			storage.InMemoryArticleData = remove(storage.InMemoryArticleData, i)
 			c.JSON(http.StatusOK, models.JSONResponse{
 				Message: "Article | Delete",
 				Data:    v,

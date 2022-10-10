@@ -5,7 +5,7 @@ import "time"
 
 type Person struct {
 	Firstname string  `json:"firstname" binding:"required" minLength:"2" maxLength:"50" example:"John"`
-	Lastname string  `json:"lastname" binding:"required" minLength:"2" maxLength:"50" example:"Doe"`
+	Lastname  string  `json:"lastname" binding:"required" minLength:"2" maxLength:"50" example:"Doe"`
 }
 
 type Content struct {
@@ -14,7 +14,7 @@ type Content struct {
 }
 
 type Article struct {
-	ID        string `json:"id"`
+	ID          string `json:"id"`
 	Content          
 	AuthorID    string `json:"author_id" binding:"required"`
 	CreatedAt time.Time `json:"created_at"`
@@ -30,7 +30,7 @@ type CreateArticleModel struct {
 type PackedArticleModel struct {
 	ID        string `json:"id"`
 	Content          
-	Author    Author `json:"author" binding:"required"`
+	Author    Author `json:"author"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdateAt *time.Time `json:"updated_at"`
 	DeleteAt *time.Time `json:"-"`
