@@ -35,3 +35,9 @@ type PackedArticleModel struct {
 	UpdateAt *time.Time `json:"updated_at"`
 	DeleteAt *time.Time `json:"-"`
 }	
+
+//UpdateArticleModel...
+type UpdateArticleModel struct {
+	ID 			string `json:"id" binding:"required"`
+	Content          // Promoted fields
+}

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"http-server/models"
 	"http-server/storage"
@@ -12,9 +11,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func remove(slice []models.Article, s int) []models.Article {
-	return append(slice[:s], slice[s+1:]...)
-}
+// func remove(slice []models.Article, s int) []models.Article {
+// 	return append(slice[:s], slice[s+1:]...)
+// }
 
 // CreateArticle godoc
 // @Summary      Create article
@@ -37,16 +36,16 @@ func CreateArticle(c *gin.Context) {
 	//ToDo - validation should be here
 
 	id := uuid.New()
-	err:=storage.AddArticle(id.String(),body)
-	if err !=nil {
+	err := storage.AddArticle(id.String(), body)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
 			Error: err.Error(),
 		})
 		return
 	}
 
-	article,err:= storage.GetArticleById(id.String())
-	if err!=nil{
+	article, err := storage.GetArticleById(id.String())
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
 			Error: err.Error(),
 		})
@@ -70,18 +69,18 @@ func CreateArticle(c *gin.Context) {
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/article/{id} [get]
 func GetArticleById(c *gin.Context) {
-	idStr:=c.Param("id")
+	idStr := c.Param("id")
 
-	article,err:= storage.GetArticleById(idStr)
-	if err!=nil{
+	article, err := storage.GetArticleById(idStr)
+	if err != nil {
 		c.JSON(http.StatusNotFound, models.JSONErrorResponce{
-		Error: err.Error(),
-	})
+			Error: err.Error(),
+		})
 	}
 	c.JSON(http.StatusOK, models.JSONResponse{
-				Message: "OK",
-		 			Data:    article,
-})
+		Message: "OK",
+		Data:    article,
+	})
 	// for _, v := range storage.InMemoryArticleData {
 	// 	if v.ID == idStr {
 	// 		c.JSON(http.StatusOK, models.JSONResponse{
@@ -91,7 +90,7 @@ func GetArticleById(c *gin.Context) {
 	// 		return
 	// 	}
 	// }
-	
+
 }
 
 // getArticleList godoc
@@ -103,12 +102,12 @@ func GetArticleById(c *gin.Context) {
 // @Success      200  {object}   models.JSONResponse{data=[]models.Article}
 // @Router       /v1/article [get]
 func GetArticleList(c *gin.Context) {
-	articleList, err:= storage.GetArticleList()
-	if err!=nil{
+	articleList, err := storage.GetArticleList()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
-		Error: err.Error(),
-	})
-}
+			Error: err.Error(),
+		})
+	}
 	c.JSON(http.StatusOK, models.JSONResponse{
 		Message: "Ok",
 		Data:    articleList,
@@ -122,40 +121,41 @@ func GetArticleList(c *gin.Context) {
 // @Tags         articles
 // @Accept       json
 // @Produce      json
-// @Param	article body models.Article true "article body"
-// @Param        q    query     string  false  "name search by q"  Format(email)
+// @Param	article body models.UpdateArticleModel true "article body"
 // @Success      200  {object}   models.JSONResponse{data=[]models.Article}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/article [put]
 func UpdateArticle(c *gin.Context) {
-	var article models.Article
-
-	if err := c.ShouldBindJSON(&article); err != nil {
+	var body models.UpdateArticleModel
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{Error: err.Error()})
-		// gin.H{"error": err.Error()}
 		return
 	}
-	for i, v := range storage.InMemoryArticleData {
-		if v.ID == article.ID {
-			article.CreatedAt = v.CreatedAt
 
-			t := time.Now()
-			article.UpdateAt = &t
-			storage.InMemoryArticleData[i] = article
-			c.JSON(http.StatusOK, models.JSONResponse{
-				Message: "Article | Updaate",
-				Data:    storage.InMemoryArticleData,
-			})
-			return
-		}
+	err := storage.UpdateArticle(body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusNotFound, models.JSONErrorResponce{
-		Error: "Article | Update | Not found",
+
+	article, err := storage.GetArticleById(body.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.JSONResponse{
+		Message: "Ok",
+		Data:    article,
+		// 	 gin.H{
+		// 	"message": "Article | Update | Not found",
+		// 	"data":    storage.InMemoryArticleData,
+		// }
 	})
-	// 	 gin.H{
-	// 	"message": "Article | Update | Not found",
-	// 	"data":    storage.InMemoryArticleData,
-	// }
 }
 
 // DeleteArticle...
@@ -173,19 +173,40 @@ func UpdateArticle(c *gin.Context) {
 func DeleteArticle(c *gin.Context) {
 	idStr := c.Param("id")
 
-	for i, v := range storage.InMemoryArticleData {
-		if v.ID == idStr {
-			storage.InMemoryArticleData = remove(storage.InMemoryArticleData, i)
-			c.JSON(http.StatusOK, models.JSONResponse{
-				Message: "Article | Delete",
-				Data:    v,
-			})
-			return
-		}
+	article, err := storage.GetArticleById(idStr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusNotFound, models.JSONErrorResponce{
-		Error: "Article | Delete | Not found",
+
+	err = storage.RemoveArticle(article.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.JSONResponse{
+		Message: "Ok",
+		Data:    article,
 	})
+
+	// for i, v := range storage.InMemoryArticleData {
+	// 	if v.ID == idStr {
+	// 		storage.InMemoryArticleData = remove(storage.InMemoryArticleData, i)
+	// 		c.JSON(http.StatusOK, models.JSONResponse{
+	// 			Message: "Article | Delete",
+	// 			Data:    v,
+	// 		})
+	// 		return
+	// 	}
+	// }
+	// c.JSON(http.StatusNotFound, models.JSONErrorResponce{
+	// 	Error: "Article | Delete | Not found",
+	// })
 	// 	gin.H{
 	// 	"message": "Article | Delete | Not found",
 	// 	"data":    nil,
