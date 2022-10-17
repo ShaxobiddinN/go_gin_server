@@ -8,6 +8,7 @@ import (
 	"http-server/handlers"
 	"http-server/models"
 	"http-server/storage"
+	"http-server/storage/inmemory"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -24,12 +25,17 @@ func main() {
 	docs.SwaggerInfo.Description="This is a simple server Petstore server"
 	docs.SwaggerInfo.Version="2.0"
 
-	err:=storage.AddAuthor("87e5f2ce-d80d-40e6-a77e-f98d58d17481",models.CreateAuthorModel{
+	var stg storage.StorageI
+	stg=inmemory.InMemory{
+		Db: &inmemory.DB{},
+	}
+
+	err:=stg.AddAuthor("87e5f2ce-d80d-40e6-a77e-f98d58d17481",models.CreateAuthorModel{
 		Firstname: "John",
 		Lastname: "Doe",
 	} )
 
-	err=storage.AddArticle("51800dbe-c098-41de-95ff-dfafa7da9b46", models.CreateArticleModel{
+	err=stg.AddArticle("51800dbe-c098-41de-95ff-dfafa7da9b46", models.CreateArticleModel{
 		Content: models.Content{
 			Title: "Lorem",
 			Body: "Impsume smth smth smtnh",
@@ -41,12 +47,12 @@ func main() {
 		panic(err)
 	}
 
-	err=storage.AddAuthor("135b26bc-dc58-4dce-afb7-579a00d641aa",models.CreateAuthorModel{
+	err=stg.AddAuthor("135b26bc-dc58-4dce-afb7-579a00d641aa",models.CreateAuthorModel{
 		Firstname: "Jack",
 		Lastname: "London",
 	} )
 
-	err=storage.AddArticle("66666dbe-c098-41de-95ff-dfafa7da9b66", models.CreateArticleModel{
+	err=stg.AddArticle("66666dbe-c098-41de-95ff-dfafa7da9b66", models.CreateArticleModel{
 		Content: models.Content{
 			Title: "2",
 			Body: "Impsume smth smth smtnh",
@@ -64,19 +70,22 @@ func main() {
 		})
 	})
 
+	h:=handlers.Handler{
+		Stg: stg,
+	}
 	v1 := r.Group("/v1")
 	{
-		v1.POST("/article", handlers.CreateArticle)
-		v1.GET("/article/:id", handlers.GetArticleById)
-		v1.GET("/article", handlers.GetArticleList)	
-		v1.PUT("/article", handlers.UpdateArticle)
-		v1.DELETE("/article/:id", handlers.DeleteArticle)
+		v1.POST("/article", h.CreateArticle)
+		v1.GET("/article/:id", h.GetArticleById)
+		v1.GET("/article", h.GetArticleList)	
+		v1.PUT("/article", h.UpdateArticle)
+		v1.DELETE("/article/:id", h.DeleteArticle)
 
-		v1.POST("/author", handlers.CreateAuthor)
-		v1.GET("/author/:id", handlers.GetAuthorById)
-		v1.GET("/author", handlers.GetAuthorList)	
-		v1.PUT("/author", handlers.UpdateAuthor)
-		v1.DELETE("/author/:id", handlers.DeleteAuthor)
+		v1.POST("/author", h.CreateAuthor)
+		v1.GET("/author/:id", h.GetAuthorById)
+		v1.GET("/author", h.GetAuthorList)	
+		v1.PUT("/author", h.UpdateAuthor)
+		v1.DELETE("/author/:id", h.DeleteAuthor)
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
