@@ -1,9 +1,8 @@
 package handlers
 
-
 import (
 	"net/http"
-	"time"
+	"strconv"
 
 	"http-server/models"
 	"http-server/storage"
@@ -24,7 +23,6 @@ func removee(slice []models.Author, s int) []models.Author {
 // @Accept       json
 // @Produce      json
 // @Param	author body models.CreateAuthorModel true "author body"
-// @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      201  {object}   models.JSONResponse{data=models.Author}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/author [post]
@@ -54,7 +52,7 @@ func CreateAuthor(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, models.JSONResponse{
-		Message: "Author | GetByList",
+		Message: "Author | Created",
 		Data:    author,
 	})
 }
@@ -66,7 +64,6 @@ func CreateAuthor(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param	id path string true "Author ID"
-// @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      200  {object}   models.JSONResponse{data=models.Author}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/author/{id} [get]
@@ -104,11 +101,32 @@ func GetAuthorById(c *gin.Context) {
 // @Success      200  {object}   models.JSONResponse{data=[]models.Author}
 // @Router       /v1/author [get]
 func GetAuthorList(c *gin.Context) {
-	authorList, err:= storage.GetAuthorList()
+	offsetStr := c.DefaultQuery("offset", "0")
+	limitStr := c.DefaultQuery("limit", "10")
+	searchStr := c.DefaultQuery("search", "")
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	authorList, err:= storage.GetAuthorList(offset,limit,searchStr)
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
 		Error: err.Error(),
 	})
+	return
 }
 	c.JSON(http.StatusOK, models.JSONResponse{
 		Message: "Ok",
@@ -123,35 +141,35 @@ func GetAuthorList(c *gin.Context) {
 // @Tags         authors
 // @Accept       json
 // @Produce      json
-// @Param	author body models.Author true "author body"
-// @Param        q    query     string  false  "name search by q"  Format(email)
+// @Param	author body models.UpdateAuthorModel true "author body"
 // @Success      200  {object}   models.JSONResponse{data=[]models.Author}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/author [put]
 func UpdateAuthor(c *gin.Context) {
-	var author models.Author
-
-	if err := c.ShouldBindJSON(&author); err != nil {
+	var body models.UpdateAuthorModel
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{Error: err.Error()})
-		// gin.H{"error": err.Error()}
 		return
 	}
-	for i, v := range storage.InMemoryAuthorData {
-		if v.Id == author.Id {
-			author.CreatedAt = v.CreatedAt
-
-			t := time.Now()
-			author.UpdateAt = &t
-			storage.InMemoryAuthorData[i] = author
-			c.JSON(http.StatusOK, models.JSONResponse{
-				Message: "Author | Updaate",
-				Data:    storage.InMemoryAuthorData,
-			})
-			return
-		}
+	err := storage.UpdateAuthor(body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusNotFound, models.JSONErrorResponce{
-		Error: "Author | Update | Not found",
+
+	author, err := storage.GetArticleById(body.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK, models.JSONResponse{
+		Message: "ok",
+		Data: author,
 	})
 }
 
@@ -163,26 +181,31 @@ func UpdateAuthor(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param	id path string true "Author ID"
-// @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      200  {object}   models.JSONResponse{data=models.Author}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/author/{id} [delete]
 func DeleteAuthor(c *gin.Context) {
 	idStr := c.Param("id")
 
-	for i, v := range storage.InMemoryAuthorData {
-		if v.Id == idStr {
-			storage.InMemoryAuthorData = removee(storage.InMemoryAuthorData, i)
-			c.JSON(http.StatusOK, models.JSONResponse{
-				Message: "Author | Delete",
-				Data:    v,
-			})
-			return
-		}
+	author, err := storage.GetAuthorById(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
 	}
-	c.JSON(http.StatusNotFound, models.JSONErrorResponce{
-		Error: "Author | Delete | Not found",
-	})
 
+	err = storage.RemoveAuthor(author.Id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.JSONResponse{
+		Message: "Ok",
+		Data:    author,
+	})
 
 }

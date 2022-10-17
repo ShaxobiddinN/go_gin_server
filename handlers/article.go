@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"http-server/models"
 	"http-server/storage"
-	_ "http-server/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,7 +22,6 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param	article body models.CreateArticleModel true "article body"
-// @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      201  {object}   models.JSONResponse{data=models.Article}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/article [post]
@@ -64,7 +63,6 @@ func CreateArticle(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param	id path string true "Article ID"
-// @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      200  {object}   models.JSONResponse{data=models.PackedArticleModel}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/article/{id} [get]
@@ -76,6 +74,7 @@ func GetArticleById(c *gin.Context) {
 		c.JSON(http.StatusNotFound, models.JSONErrorResponce{
 			Error: err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusOK, models.JSONResponse{
 		Message: "OK",
@@ -99,14 +98,38 @@ func GetArticleById(c *gin.Context) {
 // @Tags         articles
 // @Accept       json
 // @Produce      json
+// @Param    offset    query	int		false	"0"
+// @Param    limit     query	int		false	"0"
+// @Param    search    query	string		false	"smth"
 // @Success      200  {object}   models.JSONResponse{data=[]models.Article}
 // @Router       /v1/article [get]
 func GetArticleList(c *gin.Context) {
-	articleList, err := storage.GetArticleList()
+	offsetStr := c.DefaultQuery("offset", "0")
+	limitStr := c.DefaultQuery("limit", "10")
+	searchStr := c.DefaultQuery("search", "")
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	articleList, err := storage.GetArticleList(offset, limit, searchStr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
 			Error: err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusOK, models.JSONResponse{
 		Message: "Ok",
@@ -166,8 +189,7 @@ func UpdateArticle(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param	id path string true "Article ID"
-// @Param        q    query     string  false  "name search by q"  Format(email)
-// @Success      200  {object}   models.JSONResponse{data=models.Article}
+// @Success      200  {object}   models.JSONResponse{data=models.PackedArticleModel}
 // @Failure      400  {object}  models.JSONErrorResponce
 // @Router       /v1/article/{id} [delete]
 func DeleteArticle(c *gin.Context) {
@@ -175,7 +197,7 @@ func DeleteArticle(c *gin.Context) {
 
 	article, err := storage.GetArticleById(idStr)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
+		c.JSON(http.StatusBadRequest, models.JSONErrorResponce{
 			Error: err.Error(),
 		})
 		return
@@ -213,3 +235,5 @@ func DeleteArticle(c *gin.Context) {
 	// }
 
 }
+
+

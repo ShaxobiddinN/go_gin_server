@@ -37,6 +37,26 @@ const docTemplate = `{
                     "articles"
                 ],
                 "summary": "List articles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "0",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "0",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "smth",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -80,15 +100,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Article"
+                            "$ref": "#/definitions/models.UpdateArticleModel"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -142,13 +155,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.CreateArticleModel"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -199,13 +205,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -254,13 +253,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -275,7 +267,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Article"
+                                            "$ref": "#/definitions/models.PackedArticleModel"
                                         }
                                     }
                                 }
@@ -347,15 +339,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Author"
+                            "$ref": "#/definitions/models.UpdateAuthorModel"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -409,13 +394,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.CreateAuthorModel"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -466,13 +444,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -521,13 +492,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -699,6 +663,49 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.UpdateArticleModel": {
+            "type": "object",
+            "required": [
+                "body",
+                "id",
+                "title"
+            ],
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateAuthorModel": {
+            "type": "object",
+            "required": [
+                "firstname",
+                "lastname"
+            ],
+            "properties": {
+                "firstname": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "John"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "Doe"
                 }
             }
         }

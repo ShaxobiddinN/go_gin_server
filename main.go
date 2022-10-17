@@ -41,6 +41,22 @@ func main() {
 		panic(err)
 	}
 
+	err=storage.AddAuthor("135b26bc-dc58-4dce-afb7-579a00d641aa",models.CreateAuthorModel{
+		Firstname: "Jack",
+		Lastname: "London",
+	} )
+
+	err=storage.AddArticle("66666dbe-c098-41de-95ff-dfafa7da9b66", models.CreateArticleModel{
+		Content: models.Content{
+			Title: "2",
+			Body: "Impsume smth smth smtnh",
+		},
+		AuthorID:"135b26bc-dc58-4dce-afb7-579a00d641aa" ,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
