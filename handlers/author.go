@@ -161,7 +161,7 @@ func (h Handler) UpdateAuthor(c *gin.Context) {
 		return
 	}
 
-	author, err := h.Stg.GetArticleById(body.Id)
+	author, err := h.Stg.GetAuthorById(body.Id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.JSONErrorResponce{
 			Error: err.Error(),
